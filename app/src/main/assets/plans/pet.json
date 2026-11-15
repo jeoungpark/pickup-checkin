@@ -1,0 +1,24 @@
+{
+  "title": "해피독 유치원 하원 드랍",
+  "vehicle": "흰색 스타리아 · 34나 5678",
+  "driverName": "해피독 선생님",
+  "useSeatSignals": false,
+  "trunkCounts": true,
+  "stops": [
+    {
+      "id": "kongi", "type": "DROPOFF",
+      "place": "콩이네 아파트",
+      "lat": 37.4945, "lon": 127.0617,
+      "meetHint": "101동 1층 공동현관",
+      "riders": [ { "id": "kongi", "name": "콩이", "guardian": "콩이 보호자" } ]
+    },
+    {
+      "id": "tori", "type": "DROPOFF",
+      "place": "토리네 아파트",
+      "lat": 37.4880, "lon": 127.0440,
+      "meetHint": "정문 경비실 앞",
+      "riders": [ { "id": "tori", "name": "토리", "guardian": "토리 보호자" } ]
+    }
+  ],
+  "destination": { "name": "해피독 유치원", "lat": 37.5050, "lon": 127.0560, "address": "대치동" }
+}

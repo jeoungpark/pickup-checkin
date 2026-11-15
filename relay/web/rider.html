@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>픽업 체크인</title>
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--fg:#111418;--muted:#5f6b76;--line:#e3e7eb;--accent:#1565c0;--ok:#2e7d32;--warn:#ef6c00}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1214;--card:#181c20;--fg:#eef1f3;--muted:#9aa5b1;--line:#262c32}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;background:var(--bg);color:var(--fg);padding:16px;max-width:480px;margin:0 auto}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.top h1{font-size:20px}.top span{font-size:13px;color:var(--muted)}
+.hero{background:var(--card);border-radius:18px;padding:22px 20px;border:1px solid var(--line)}
+.badge{display:inline-block;font-size:13px;font-weight:700;color:#fff;background:var(--muted);border-radius:99px;padding:4px 12px;margin-bottom:12px}
+.hero p{font-size:24px;font-weight:700;line-height:1.35}
+.car{margin-top:14px;font-size:14px;color:var(--muted)}
+.flash{animation:flash .9s ease}
+@keyframes flash{0%{transform:scale(.98);box-shadow:0 0 0 4px var(--accent)}100%{transform:none;box-shadow:none}}
+h2{font-size:14px;color:var(--muted);margin:20px 4px 8px}
+ol{list-style:none;background:var(--card);border-radius:14px;border:1px solid var(--line)}
+li{padding:12px 16px;border-top:1px solid var(--line);font-size:15px;display:flex;gap:10px}
+li:first-child{border-top:0}
+li time{color:var(--muted);font-variant-numeric:tabular-nums;min-width:44px}
+button{width:100%;margin-top:16px;padding:16px;font-size:17px;font-weight:700;border:0;border-radius:14px;background:var(--fg);color:var(--bg)}
+button:disabled{opacity:.35}
+.row{display:flex;gap:8px;margin-top:16px}.row button{margin-top:0}
+button.sub{background:var(--card);color:var(--fg);border:1px solid var(--line);font-weight:600}
+.note{font-size:12px;color:var(--muted);margin-top:10px;text-align:center}
+</style>
+</head>
+<body>
+<div class="top"><h1 id="who">픽업 체크인</h1><span id="title"></span></div>
+<section class="hero" id="hero">
+  <span class="badge" id="badge">대기</span>
+  <p id="msg">아직 소식이 없어요.</p>
+  <div class="car" id="car"></div>
+</section>
+<div class="row" id="replies">
+  <button class="sub" data-code="ok">넵</button>
+  <button class="sub" data-code="slow">천천히 오세요</button>
+</div>
+<button id="received" style="display:none">받았어요</button>
+<button id="late">5분 늦어요</button>
+<p class="note">이 페이지는 오늘 픽업이 끝나면 더 이상 정보를 보여주지 않아요.</p>
+<h2>오늘 소식</h2>
+<ol id="log"></ol>
+<script>
+const rider = decodeURIComponent(location.pathname.split('/').pop());
+const BADGE = {planned:['예정','#5f6b76'],departed:['출발','#1565c0'],next:['다음 차례','#1565c0'],soon:['곧 도착','#ef6c00'],
+  arrived:['차 도착','#6a1b9a'],queue:['순서','#455a64'],dropped:['내려드림','#2e7d32'],waiting:['기다리는 중','#6a1b9a'],late:['지연','#ad1457'],boarded:['탔어요','#2e7d32'],all_boarded:['모두 탑승','#2e7d32'],missed:['못 만남','#616161'],done:['도착','#2e7d32']};
+let after = 0, boarded = false, isDropArrived = false, info = null;
+const $ = id => document.getElementById(id);
+function riderInfo(plan){
+  for (const s of (plan?.stops||[])) for (const r of s.riders) if (r.id===rider) return {r,s};
+  return null;
+}
+async function tick(){
+  try{
+    const res = await fetch(`/api/state?rider=${encodeURIComponent(rider)}&after=${after}`,{cache:'no-store'});
+    const {plan,events} = await res.json();
+    info = riderInfo(plan);
+    if (info){
+      $('who').textContent = info.r.guardian ? `${info.r.name} · ${info.r.guardian}` : info.r.name;
+      $('title').textContent = plan.title;
+      $('car').textContent = `${plan.vehicle} · ${info.s.place}`;
+    }
+    for (const e of events){
+      after = Math.max(after, e.seq);
+      const [label,color] = BADGE[e.kind] || ['알림','#5f6b76'];
+      $('badge').textContent = label; $('badge').style.background = color;
+      $('msg').textContent = e.text;
+      const hero = $('hero'); hero.classList.remove('flash'); void hero.offsetWidth; hero.classList.add('flash');
+      const li = document.createElement('li');
+      li.innerHTML = `<time>${new Date(e.ts).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}</time><span></span>`;
+      li.lastChild.textContent = e.text;
+      $('log').prepend(li);
+      if (['boarded','dropped','done','missed'].includes(e.kind) && e.to===rider) boarded = true;
+      if (e.to===rider) isDropArrived = (info && info.s.type==='DROPOFF' && e.kind==='arrived') || (isDropArrived && !['dropped','missed'].includes(e.kind));
+      if (navigator.vibrate && ['soon','arrived','boarded'].includes(e.kind)) navigator.vibrate(150);
+    }
+    $('late').disabled = boarded;
+    $('received').style.display = isDropArrived && !boarded ? 'block' : 'none';
+    if (info && info.s.type==='DROPOFF') $('late').textContent = '5분 늦게 내려가요';
+  }catch(_){}
+}
+async function reply(code){ await fetch('/api/reply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rider,code})}); }
+document.querySelectorAll('#replies button').forEach(b => b.onclick = async () => { b.disabled = true; await reply(b.dataset.code); b.textContent = b.textContent + ' ✓'; });
+$('received').onclick = async () => { $('received').disabled = true; $('received').textContent = '전달했어요'; await reply('received'); };
+$('late').onclick = async () => {
+  $('late').disabled = true; $('late').textContent = '운전자에게 전했어요';
+  await fetch('/api/late',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rider,minutes:5})});
+};
+tick(); setInterval(tick, 1000);
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "title": "원주 뮤지엄산 가는 날",
+  "vehicle": "흰색 아이오닉 5 · 12가 3456",
+  "driverName": "영재",
+  "stops": [
+    {
+      "id": "guro",
+      "place": "구로디지털단지역 2번 출구",
+      "lat": 37.4851, "lon": 126.9015,
+      "meetHint": "2번 출구 횡단보도 앞",
+      "riders": [ { "id": "minsu", "name": "민수" }, { "id": "sujin", "name": "수진" } ]
+    },
+    {
+      "id": "jamsil",
+      "place": "잠실새내역 4번 출구",
+      "lat": 37.5116, "lon": 127.0864,
+      "meetHint": "4번 출구 버스정류장 뒤",
+      "riders": [ { "id": "jiyoung", "name": "지영" } ]
+    }
+  ],
+  "destination": { "name": "뮤지엄산", "lat": 37.4135, "lon": 127.8297, "address": "강원 원주시 지정면" }
+}

@@ -1,0 +1,41 @@
+{
+  "title": "수요일 학원 픽업",
+  "vehicle": "흰색 아이오닉 5 · 12가 3456",
+  "driverName": "지우 엄마",
+  "stops": [
+    {
+      "id": "math",
+      "place": "대치동 수학학원",
+      "lat": 37.4945,
+      "lon": 127.0617,
+      "meetHint": "학원 정문 앞 비상등 켠 차",
+      "riders": [
+        {
+          "id": "jiwoo",
+          "name": "지우",
+          "guardian": "지우 엄마"
+        }
+      ]
+    },
+    {
+      "id": "piano",
+      "place": "도곡동 피아노학원",
+      "lat": 37.488,
+      "lon": 127.044,
+      "meetHint": "상가 1층 편의점 앞",
+      "riders": [
+        {
+          "id": "hayun",
+          "name": "하윤",
+          "guardian": "하윤 엄마 (옆집)"
+        }
+      ]
+    }
+  ],
+  "destination": {
+    "name": "집",
+    "lat": 37.505,
+    "lon": 127.056,
+    "address": "대치동 아파트"
+  }
+}
